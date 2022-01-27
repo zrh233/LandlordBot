@@ -62,68 +62,39 @@ namespace qqbot2
                 //最简单的复读
                 //Console.WriteLine(eventArgs.Message.MessageBody.IndexOf(Sora.Entities.MessageElement.CQCodes.CQAt(eventArgs.LoginUid)));//, eventArgs.Message
 
-                //if (eventArgs.WaitForNextMessageAsync)
-
                 //接入机器人api
                 if (eventArgs.Message.MessageBody.IndexOf(Sora.Entities.MessageElement.CQCodes.CQAt(eventArgs.LoginUid)) >= 0)
-                //if (eventArgs.Message.MessageBody[0].MessageType == Sora.Enumeration.CQType.At)
-                //if (rand.Next(100) < 20)
+                //if (rand.Next(100) < 20)  //不at情况下随机回复
                 {
                     var ms2 = new Sora.Entities.MessageBody() { };
 
-                    //var aaaa=Sora.Entities.MessageElement.CQCodes.CQText("12");
-
-                    //ms2.Add(aaaa);
-                    //await eventArgs.Reply(ms2);
-                    //ms2.Add(Sora.Entities.MessageElement.CQCodes.CQReply(eventArgs.Message.MessageId));
                     ms2.Add(Sora.Entities.MessageElement.CQCodes.CQAt(eventArgs.Sender.Id));
                     ms2.Add(await BotApi(eventArgs.Message.RawText));
 
 
                     await eventArgs.Reply(ms2);
                 }
-                //var aaaa= eventArgs.WaitForNextMessageAsync;
 
                 var ddzAns = await Doudizhu.Solve(eventArgs.Message.RawText, eventArgs.Sender.Id, eventArgs.SourceGroup, eventArgs);
-                //Console.WriteLine(ddzAns[0]);
+
+                //Console.WriteLine(ddzAns[0]);//输出回复结果
                 if (ddzAns != null)
                 {
                     await eventArgs.Reply(ddzAns);
                 }
 
             };
+
+            //私人消息接收回调
             service.Event.OnPrivateMessage += async (sender, eventArgs) =>
             {
                 var rand = new Random();
-                //最简单的复读
-                //Console.WriteLine(eventArgs.Message.MessageList);//, eventArgs.Message
 
-
+                //BOT回复
                 await eventArgs.Reply(await BotApi(eventArgs.Message.RawText));
-
-
-                if (rand.Next(100) < 50)
-                {
-                    //var msg1 = new Sora.Entities.Message {
-
-                    //};
-                    //var msg1 = new System.Collections.Generic.List<Sora.Entities.CQCodes.CQCode>();
-                    //msg1.Add(Sora.Entities.CQCodes.CQCode.CQFace(12));
-                    //msg1.Add(Sora.Entities.CQCodes.CQCode.CQText("aaa123"));
-
-                    //await eventArgs.Repeat();
-                    //await eventArgs.Reply(eventArgs.Message.MessageList);
-                    //await eventArgs.Reply(msg1);
-                    //await eventArgs.Repeat();
-                    //await eventArgs.Reply(eventArgs.Message.MessageList);
-                    //await eventArgs.Reply("aaa233333");
-                    //await eventArgs.SourceGroup.SendGroupMessage("233333");
-                    //await eventArgs.RecallSourceMessage();
-                    //await eventArgs.Reply("123233");
-                }
-
             };
 
+            //自动添加好友
             service.Event.OnFriendRequest += async (sender, eventArgs) =>
            {
                await eventArgs.Accept(eventArgs.Sender.Id.ToString() + "-Bot加的");
