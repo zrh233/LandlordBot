@@ -13,5 +13,12 @@
 - [ ] 斗地主牌型判断
 - [ ] 整体重构，适配多群同时游戏
 
+
 ## 使用方法
 搭配 [go-cqhttp](https://github.com/Mrs4s/go-cqhttp) 使用，以反向 WebSocket 方式连接。
+
+
+## 使用的开源库
+[Sora](https://github.com/DeepOceanSoft/Sora)
+
+[Microsoft.Data.Sqlite](https://github.com/dotnet/efcore)
