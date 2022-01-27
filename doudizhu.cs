@@ -85,22 +85,26 @@ namespace qqbot2
         {
             var ansMsg = new Sora.Entities.MessageBody() { };
             eArgs = eventArgs;
-            var isAdmin = await eventArgs.SourceGroup.GetGroupMemberInfo(eventArgs.LoginUid, true);
+            var isBotAdmin = await eventArgs.SourceGroup.GetGroupMemberInfo(eventArgs.LoginUid, true);
             if (eventArgs.Sender.Id == 80000000)
                 return null;
 
-            if (isAdmin.memberInfo.Role == Sora.Enumeration.EventParamsType.MemberRoleType.Member)
+            if (isBotAdmin.memberInfo.Role == Sora.Enumeration.EventParamsType.MemberRoleType.Member)
                 return null;
 
-            //Debug
-            if (text.IndexOf("Debug_") > -1)
+            //Debug 群主或管理员可以强制模拟成员进行发言
+            //      格式： Debug_"QQ号"_内容
+            var isUserAdmin = await eventArgs.SourceGroup.GetGroupMemberInfo(qqId, true);
+            if (text.IndexOf("Debug_") > -1
+                && (isBotAdmin.memberInfo.Role == Sora.Enumeration.EventParamsType.MemberRoleType.Admin
+                    || isBotAdmin.memberInfo.Role == Sora.Enumeration.EventParamsType.MemberRoleType.Owner))
             {
                 string[] tx = text.Split('_');
                 qqId = Int32.Parse(tx[1]);
                 text = tx[2];
             }
             //!Debug
-            nowUid = qqId; //Console.WriteLine(nowUid);
+            nowUid = qqId;
 
 
             if (text[0] == '出' || text[0] == '+')
@@ -420,8 +424,6 @@ namespace qqbot2
 
 
             return ansMsg;
-            //ansMsg.Add(Sora.Entities.MessageElement.CQCodes.)
-            //Sora
         }
 
         static public async void PrintCards(int userIndex, Sora.EventArgs.SoraEvent.GroupMessageEventArgs eventArgs)
