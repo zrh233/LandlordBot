@@ -1,11 +1,12 @@
-﻿using System;
-using Sora.Net;
-using Sora.OnebotModel;
-using System.Threading.Tasks;
-using YukariToolBox.Extensions;
-using YukariToolBox.FormatLog;
+﻿using System.Threading.Tasks;
+using Sora;
+using Sora.Interfaces;
+using Sora.Net.Config;
+using Sora.Util;
+using YukariToolBox.LightLog;
 using System.Net.Http;
 using Newtonsoft.Json;
+using System;
 
 namespace qqbot2
 {
@@ -44,7 +45,10 @@ namespace qqbot2
 
         static async Task Main(string[] args)
         {
-            //Doudizhu.Load();
+            //设置log等级
+            Log.LogConfiguration
+               .EnableConsoleOutput()
+               .SetLogLevel(LogLevel.Info);
 
             var conf = new ServerConfig
             {
@@ -63,12 +67,12 @@ namespace qqbot2
                 //Console.WriteLine(eventArgs.Message.MessageBody.IndexOf(Sora.Entities.MessageElement.CQCodes.CQAt(eventArgs.LoginUid)));//, eventArgs.Message
 
                 //接入机器人api
-                if (eventArgs.Message.MessageBody.IndexOf(Sora.Entities.MessageElement.CQCodes.CQAt(eventArgs.LoginUid)) >= 0)
+                if (eventArgs.Message.MessageBody.IndexOf(Sora.Entities.Segment.SoraSegment.At(eventArgs.LoginUid)) >= 0)
                 //if (rand.Next(100) < 20)  //不at情况下随机回复
                 {
                     var ms2 = new Sora.Entities.MessageBody() { };
 
-                    ms2.Add(Sora.Entities.MessageElement.CQCodes.CQAt(eventArgs.Sender.Id));
+                    ms2.Add(Sora.Entities.Segment.SoraSegment.At(eventArgs.Sender.Id));
                     ms2.Add(await BotApi(eventArgs.Message.RawText));
 
 

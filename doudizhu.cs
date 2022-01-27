@@ -4,6 +4,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Sora;
+using Sora.Interfaces;
+using Sora.Net.Config;
+using Sora.Util;
+using YukariToolBox.LightLog;
 
 namespace qqbot2
 {
@@ -52,33 +57,8 @@ namespace qqbot2
 
         static private Sora.Entities.MessageBody AtPlayer(Sora.Entities.MessageBody ansMsg, int thePlayer)
         {
-            ansMsg.Add(Sora.Entities.MessageElement.CQCodes.CQAt(idPlayer[thePlayer]));
+            ansMsg.Add(Sora.Entities.Segment.SoraSegment.At(idPlayer[thePlayer]));
             return ansMsg;
-        }
-
-        static public void Load()
-        {
-            Console.WriteLine("正在读取配置");
-            if (!File.Exists(fileName))
-            {
-                WriteFile();
-            }
-            LoadFile();
-        }
-
-        static public async void LoadFile()
-        {
-            string line = "";
-            FileStream fs = File.OpenRead(fileName);
-
-            string conf = "";
-            //fs.Read(conf,0,)
-
-        }
-
-        static public async void WriteFile()
-        {
-
         }
 
         static public async Task<Sora.Entities.MessageBody> Solve(string text, long qqId,long groupId, Sora.EventArgs.SoraEvent.GroupMessageEventArgs eventArgs)
@@ -158,7 +138,7 @@ namespace qqbot2
         //查询
         static public Sora.Entities.MessageBody UserStaus(Sora.Entities.MessageBody ansMsg,long qqId,long groupId)
         {
-            ansMsg.Add(Sora.Entities.MessageElement.CQCodes.CQAt(qqId));
+            ansMsg.Add(Sora.Entities.Segment.SoraSegment.At(qqId));
             var uIntegral = Udata.GetUserIntegral(qqId, groupId);
             ansMsg.Add(" 你的积分为：" + uIntegral.ToString() + "! \n");
             return ansMsg;
@@ -168,7 +148,7 @@ namespace qqbot2
         static public Sora.Entities.MessageBody UserSign(Sora.Entities.MessageBody ansMsg, long qqId, long groupId)
         {
             var rand=new Random();
-            ansMsg.Add(Sora.Entities.MessageElement.CQCodes.CQAt(qqId));
+            ansMsg.Add(Sora.Entities.Segment.SoraSegment.At(qqId));
 
             if (dateToday!=DateTime.Today)
             {
@@ -177,7 +157,7 @@ namespace qqbot2
                 todayNumber=rand.Next(MAXNUM-2)+1;//MAXNUM
                 todayRangeLeft = 0;
                 todayRangeRight = MAXNUM;
-                Console.WriteLine("今日数字：" + todayNumber.ToString());
+                Log.Info("Landlord","今日数字：" + todayNumber.ToString());
             }
 
             if (todaySign.Contains(qqId))
@@ -197,7 +177,7 @@ namespace qqbot2
         public static Sora.Entities.MessageBody UserGuess(Sora.Entities.MessageBody ansMsg, long qqId, long groupId,int number)
         {
             var rand = new Random();
-            ansMsg.Add(Sora.Entities.MessageElement.CQCodes.CQAt(qqId));
+            ansMsg.Add(Sora.Entities.Segment.SoraSegment.At(qqId));
             //Console.WriteLine(dateToday.ToString() + dateToday.ToString());
             if (dateToday != DateTime.Today || todayNumber==0)
             {
@@ -206,7 +186,7 @@ namespace qqbot2
                 todayNumber = rand.Next(MAXNUM);//MAXNUM
                 todayRangeLeft = 0;
                 todayRangeRight = MAXNUM;
-                Console.WriteLine("今日数字：" + todayNumber.ToString());
+                Log.Info("Landlord", "今日数字：" + todayNumber.ToString());
             }
 
             if (number <= 0)
@@ -279,7 +259,7 @@ namespace qqbot2
         //"上桌"
         static public Sora.Entities.MessageBody UpDesk(Sora.Entities.MessageBody ansMsg, long qqId)
         {
-            ansMsg.Add(Sora.Entities.MessageElement.CQCodes.CQAt(qqId));
+            ansMsg.Add(Sora.Entities.Segment.SoraSegment.At(qqId));
             if (idPlayer.Contains(qqId))
             //if (qqId==idPlayer[i])
             {
@@ -329,7 +309,7 @@ namespace qqbot2
                 ansMsg.Add($"当前有 {idPlayer.Count} 个玩家,他们是 ");
                 for (int i = 0; i <= idPlayer.Count - 1; ++i)
                 {
-                    ansMsg.Add(Sora.Entities.MessageElement.CQCodes.CQAt((long)idPlayer[i]));
+                    ansMsg.Add(Sora.Entities.Segment.SoraSegment.At((long)idPlayer[i]));
                     if (status == "playing")
                     {
                         ansMsg.Add($"(还剩{idCards[i].Count}张) ");
@@ -368,7 +348,7 @@ namespace qqbot2
 
 
             status = "counting";
-            Console.WriteLine("tring to play");
+            //Console.WriteLine("tring to play");
             //开打
             idCards.Clear();
             //清空牌组
@@ -407,7 +387,7 @@ namespace qqbot2
             }
 
 
-            Console.WriteLine("printing");
+            //Console.WriteLine("printing");
             //输出牌组
             for (int i = 0; i <= 2; ++i)
             {
@@ -434,13 +414,13 @@ namespace qqbot2
             {
                 sendPrivateMsg += $"[{cardShow[cardInt]}]";
             }
-            Console.WriteLine(sendPrivateMsg);
+            Log.Info("Landlord",sendPrivateMsg);
             await eventArgs.SoraApi.SendTemporaryMessage(idPlayer[userIndex], eventArgs.SourceGroup.Id, sendPrivateMsg);
         }
 
         static public Sora.Entities.MessageBody GameAskCount(Sora.Entities.MessageBody ansMsg)
         {
-            ansMsg.Add(Sora.Entities.MessageElement.CQCodes.CQAt(idPlayer[nowPlayer]));
+            ansMsg.Add(Sora.Entities.Segment.SoraSegment.At(idPlayer[nowPlayer]));
             ansMsg.Add("请输入你想叫的分数：[不叫][1分][2分][3分]");
             return ansMsg;
         }
@@ -538,7 +518,7 @@ namespace qqbot2
                 return ansMsg;
             }
 
-            Console.WriteLine("chupai");
+            //Console.WriteLine("chupai");
             cards = cards.ToUpper();
             cards = cards.Replace("10", "s");
 
@@ -553,7 +533,7 @@ namespace qqbot2
                     return ansMsg;
                 }
             }
-            Console.WriteLine("zhengli");
+            //Log.Info("Landlord","zhengli");
             List<int> nowCardList = new();
             foreach (char car in cards)
             {
@@ -582,7 +562,7 @@ namespace qqbot2
                     return ansMsg;
                 }
             }
-            Console.WriteLine("te");
+            //Console.WriteLine("te");
             idCards[nowPlayer] = diffCardList;
             if (diffCardList.Count == 0)
             {
@@ -598,7 +578,7 @@ namespace qqbot2
                 }
                 PrintCards(nowPlayer, eArgs);
                 GameNextPlayer();
-                Console.WriteLine(ansMsg);
+                //Console.WriteLine(ansMsg);
                 ansMsg = CurrentPlayers(ansMsg);
                 ansMsg.Add("\n现在轮到");
                 ansMsg = AtPlayer(ansMsg, nowPlayer);

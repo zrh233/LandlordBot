@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
+using YukariToolBox.LightLog;
 
 namespace qqbot2
 {
@@ -77,7 +78,7 @@ namespace qqbot2
                 command.Parameters.AddWithValue("$groupid", groupid);
 
                 command.ExecuteReader();
-                Console.WriteLine("[" + DateTime.Now.ToString() + "][INFO][UData]修改用户 {0} 的积分为 {1}", qqid, values);
+                Log.Info("UData", "修改用户 " + qqid.ToString() + " 的积分为 " + values.ToString());
                 
                 db.Close();
                 return values;
