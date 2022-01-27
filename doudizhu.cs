@@ -152,6 +152,7 @@ namespace qqbot2
 
             if (dateToday!=DateTime.Today)
             {
+                dateToday = DateTime.Today;
                 todaySign.Clear();
                 todayGuess.Clear();
                 todayNumber=rand.Next(MAXNUM-2)+1;//MAXNUM
@@ -181,6 +182,7 @@ namespace qqbot2
             //Console.WriteLine(dateToday.ToString() + dateToday.ToString());
             if (dateToday != DateTime.Today || todayNumber==0)
             {
+                dateToday = DateTime.Today;
                 todaySign.Clear();
                 todayGuess.Clear();
                 todayNumber = rand.Next(MAXNUM);//MAXNUM
