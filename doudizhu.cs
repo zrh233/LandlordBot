@@ -143,7 +143,7 @@ namespace qqbot2
         {
             ansMsg.Add(Sora.Entities.Segment.SoraSegment.At(qqId));
             var uIntegral = Udata.GetUserIntegral(qqId, groupId);
-            ansMsg.Add(" 你的积分为：" + uIntegral.ToString() + "! \n");
+            ansMsg.Add(" 你的积分为：" + uIntegral.ToString() + "! ");
             return ansMsg;
         }
 
@@ -166,7 +166,7 @@ namespace qqbot2
 
             if (todaySign.Contains(qqId))
             {
-                ansMsg.Add(" 签到失败！你今天已经签到了!\n");
+                ansMsg.Add(" 签到失败！你今天已经签到了!");
                 return ansMsg;
             }
 
@@ -174,7 +174,7 @@ namespace qqbot2
             var uIntegral = Udata.GetUserIntegral(qqId, groupId);
             int signIntergral = rand.Next(150) + 50;
             var nowIntegral = Udata.ChangeUserIntegral(qqId, groupId, uIntegral + signIntergral);
-            ansMsg.Add(" 签到成功！获得积分"+signIntergral.ToString()+"! 你的当前积分为：" + nowIntegral.ToString() + "! \n");
+            ansMsg.Add(" 签到成功！获得积分"+signIntergral.ToString()+"! 你的当前积分为：" + nowIntegral.ToString() + "! ");
             return ansMsg;
         }
 
@@ -209,7 +209,7 @@ namespace qqbot2
 
             if (todayGuess.Contains(qqId))
             {
-                ansMsg.Add(" 猜数字失败！你今天已经猜数字了!\n");
+                ansMsg.Add(" 猜数字失败！你今天已经猜数字了!");
                 return ansMsg;
             }
 
@@ -232,7 +232,7 @@ namespace qqbot2
                 int jiang=MAXJIANG/(3+todayGuess.Count);
                 var uIntegral = Udata.GetUserIntegral(qqId, groupId);
                 var nowIntegral = Udata.ChangeUserIntegral(qqId, groupId, uIntegral + jiang*3);
-                ansMsg.Add(" 猜数字成功！奖励 "+(jiang*3).ToString()+" 积分。其余参与者获得 "+jiang.ToString()+" 积分。\n");
+                ansMsg.Add(" 猜数字成功！奖励 "+(jiang*3).ToString()+" 积分。其余参与者获得 "+jiang.ToString()+" 积分。");
                 foreach (long thisid in todayGuess)
                 {
                     uIntegral = Udata.GetUserIntegral(thisid, groupId);
@@ -264,16 +264,16 @@ namespace qqbot2
         //"斗榜"
         static public Sora.Entities.MessageBody UserTop(Sora.Entities.MessageBody ansMsg,long groupId)
         {
-            ansMsg.Add("本群积分排行榜：\n");
+            ansMsg.Add("本群积分排行榜：");
             int count = 0;
             var topUsers = Udata.GetTopUsers(groupId, MAXTOPUSER);
             foreach (var user in topUsers)
             {
                 ++count;
                 Log.Debug("Landlord", user.qqId.ToString());
-                ansMsg.Add(count.ToString()+"  ");
+                ansMsg.Add("\n"+count.ToString()+"  ");
                 ansMsg.Add(Sora.Entities.Segment.SoraSegment.At(user.qqId));
-                ansMsg.Add("  " + user.integral.ToString() + "积分\n");
+                ansMsg.Add("  " + user.integral.ToString() + "积分");
             }
             return ansMsg;
         }
