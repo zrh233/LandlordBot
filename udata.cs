@@ -50,7 +50,7 @@ namespace qqbot2
                     }
                 }
 
-                command= db.CreateCommand();
+                command = db.CreateCommand();
                 command.CommandText =
                     @"SELECT integral FROM uinfos WHERE qqid=$qqId AND groupid=$groupId";
                 command.Parameters.AddWithValue("$qqId", qqId);
@@ -66,11 +66,11 @@ namespace qqbot2
                     }
                 }
                 db.Close();
-            }            
+            }
             return 0;
         }
 
-        public static int ChangeUserIntegral(long qqId,long groupId,int values)
+        public static int ChangeUserIntegral(long qqId, long groupId, int values)
         {
             //Debug
             //return values;
@@ -86,13 +86,13 @@ namespace qqbot2
 
                 command.ExecuteReader();
                 Log.Info("UData", "修改用户 " + qqId.ToString() + " 的积分为 " + values.ToString());
-                
+
                 db.Close();
                 return values;
             }
         }
 
-        public static List<QQUser> GetTopUsers(long groupId,int numUsers)
+        public static List<QQUser> GetTopUsers(long groupId, int numUsers)
         {
             var list = new List<QQUser>();
             using (var db = new SqliteConnection("Data Source=" + DATABASE_FILE))

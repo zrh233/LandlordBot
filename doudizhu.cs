@@ -33,7 +33,7 @@ namespace qqbot2
             4,4,4,4,4,4,4,4,4,4,4,4,4,1,1
         };
         static public List<int> landlordCards = new();
-        static public List<long> todaySign= new();
+        static public List<long> todaySign = new();
         static public List<long> todayGuess = new();
         static public int todayNumber = 0;
         static public int todayRangeLeft = 0;
@@ -62,7 +62,7 @@ namespace qqbot2
             return ansMsg;
         }
 
-        static public async Task<Sora.Entities.MessageBody> Solve(string text, long qqId,long groupId, Sora.EventArgs.SoraEvent.GroupMessageEventArgs eventArgs)
+        static public async Task<Sora.Entities.MessageBody> Solve(string text, long qqId, long groupId, Sora.EventArgs.SoraEvent.GroupMessageEventArgs eventArgs)
         {
             var ansMsg = new Sora.Entities.MessageBody() { };
             eArgs = eventArgs;
@@ -94,7 +94,7 @@ namespace qqbot2
             }
 
             if (text.IndexOf("我猜") > -1)
-            {                
+            {
                 var guessNumber = int.Parse(text[2..]);
                 //Console.WriteLine(guessNumber.ToString());
                 return UserGuess(ansMsg, qqId, groupId, guessNumber);
@@ -126,7 +126,7 @@ namespace qqbot2
                 case "状况" or "牌局" or "=":
                     return GameStatus(ansMsg);
                 case "查询":
-                    return UserStaus(ansMsg,qqId,groupId);
+                    return UserStaus(ansMsg, qqId, groupId);
                 case "签到":
                     return UserSign(ansMsg, qqId, groupId);
                 case "猜数字":
@@ -139,7 +139,7 @@ namespace qqbot2
         }
 
         //查询
-        static public Sora.Entities.MessageBody UserStaus(Sora.Entities.MessageBody ansMsg,long qqId,long groupId)
+        static public Sora.Entities.MessageBody UserStaus(Sora.Entities.MessageBody ansMsg, long qqId, long groupId)
         {
             ansMsg.Add(Sora.Entities.Segment.SoraSegment.At(qqId));
             var uIntegral = Udata.GetUserIntegral(qqId, groupId);
@@ -150,18 +150,18 @@ namespace qqbot2
         //签到
         static public Sora.Entities.MessageBody UserSign(Sora.Entities.MessageBody ansMsg, long qqId, long groupId)
         {
-            var rand=new Random();
+            var rand = new Random();
             ansMsg.Add(Sora.Entities.Segment.SoraSegment.At(qqId));
 
-            if (dateToday!=DateTime.Today)
+            if (dateToday != DateTime.Today)
             {
                 dateToday = DateTime.Today;
                 todaySign.Clear();
                 todayGuess.Clear();
-                todayNumber=rand.Next(MAXNUM-2)+1;//MAXNUM
+                todayNumber = rand.Next(MAXNUM - 2) + 1;//MAXNUM
                 todayRangeLeft = 0;
                 todayRangeRight = MAXNUM;
-                Log.Info("Landlord","今日数字：" + todayNumber.ToString());
+                Log.Info("Landlord", "今日数字：" + todayNumber.ToString());
             }
 
             if (todaySign.Contains(qqId))
@@ -174,16 +174,16 @@ namespace qqbot2
             var uIntegral = Udata.GetUserIntegral(qqId, groupId);
             int signIntergral = rand.Next(150) + 50;
             var nowIntegral = Udata.ChangeUserIntegral(qqId, groupId, uIntegral + signIntergral);
-            ansMsg.Add(" 签到成功！获得积分"+signIntergral.ToString()+"! 你的当前积分为：" + nowIntegral.ToString() + "! ");
+            ansMsg.Add(" 签到成功！获得积分" + signIntergral.ToString() + "! 你的当前积分为：" + nowIntegral.ToString() + "! ");
             return ansMsg;
         }
 
-        public static Sora.Entities.MessageBody UserGuess(Sora.Entities.MessageBody ansMsg, long qqId, long groupId,int number)
+        public static Sora.Entities.MessageBody UserGuess(Sora.Entities.MessageBody ansMsg, long qqId, long groupId, int number)
         {
             var rand = new Random();
             ansMsg.Add(Sora.Entities.Segment.SoraSegment.At(qqId));
             //Console.WriteLine(dateToday.ToString() + dateToday.ToString());
-            if (dateToday != DateTime.Today || todayNumber==0)
+            if (dateToday != DateTime.Today || todayNumber == 0)
             {
                 dateToday = DateTime.Today;
                 todaySign.Clear();
@@ -213,7 +213,7 @@ namespace qqbot2
                 return ansMsg;
             }
 
-            if (number<=todayRangeLeft || number>=todayRangeRight)
+            if (number <= todayRangeLeft || number >= todayRangeRight)
             {
                 ansMsg.Add(" 猜数字失败，超出数据范围！当前猜数字范围为：("
                         + todayRangeLeft.ToString()
@@ -223,32 +223,33 @@ namespace qqbot2
                 return ansMsg;
             }
 
-            
 
-            if (number==todayNumber)
+
+            if (number == todayNumber)
             {
                 todayRangeLeft = todayNumber;
                 todayRangeRight = todayNumber;
-                int jiang=MAXJIANG/(3+todayGuess.Count);
+                int jiang = MAXJIANG / (3 + todayGuess.Count);
                 var uIntegral = Udata.GetUserIntegral(qqId, groupId);
-                var nowIntegral = Udata.ChangeUserIntegral(qqId, groupId, uIntegral + jiang*3);
-                ansMsg.Add(" 猜数字成功！奖励 "+(jiang*3).ToString()+" 积分。其余参与者获得 "+jiang.ToString()+" 积分。");
+                var nowIntegral = Udata.ChangeUserIntegral(qqId, groupId, uIntegral + jiang * 3);
+                ansMsg.Add(" 猜数字成功！奖励 " + (jiang * 3).ToString() + " 积分。其余参与者获得 " + jiang.ToString() + " 积分。");
                 foreach (long thisid in todayGuess)
                 {
                     uIntegral = Udata.GetUserIntegral(thisid, groupId);
                     nowIntegral = Udata.ChangeUserIntegral(thisid, groupId, uIntegral + jiang);
                 }
-                
+
 
                 return ansMsg;
             }
 
             todayGuess.Add(qqId);
 
-            if (number<todayNumber)
+            if (number < todayNumber)
             {
                 todayRangeLeft = number;
-            } else
+            }
+            else
             {
                 todayRangeRight = number;
             }
@@ -262,7 +263,7 @@ namespace qqbot2
         }
 
         //"斗榜"
-        static public Sora.Entities.MessageBody UserTop(Sora.Entities.MessageBody ansMsg,long groupId)
+        static public Sora.Entities.MessageBody UserTop(Sora.Entities.MessageBody ansMsg, long groupId)
         {
             ansMsg.Add("本群积分排行榜：");
             int count = 0;
@@ -271,7 +272,7 @@ namespace qqbot2
             {
                 ++count;
                 Log.Debug("Landlord", user.qqId.ToString());
-                ansMsg.Add("\n"+count.ToString()+"  ");
+                ansMsg.Add("\n" + count.ToString() + "  ");
                 ansMsg.Add(Sora.Entities.Segment.SoraSegment.At(user.qqId));
                 ansMsg.Add("  " + user.integral.ToString() + "积分");
             }
@@ -437,7 +438,7 @@ namespace qqbot2
             {
                 sendPrivateMsg += $"[{cardShow[cardInt]}]";
             }
-            Log.Info("Landlord",sendPrivateMsg);
+            Log.Info("Landlord", sendPrivateMsg);
             await eventArgs.SoraApi.SendTemporaryMessage(idPlayer[userIndex], eventArgs.SourceGroup.Id, sendPrivateMsg);
         }
 
