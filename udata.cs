@@ -73,7 +73,7 @@ namespace qqbot2
         public static int ChangeUserIntegral(long qqId,long groupId,int values)
         {
             //Debug
-            return values;
+            //return values;
             using (var db = new SqliteConnection("Data Source=" + DATABASE_FILE))
             {
                 db.Open();
