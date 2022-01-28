@@ -12,16 +12,22 @@ namespace qqbot2
     {
         const string DATABASE_FILE = "udata.db";
 
-        public static int GetUserIntegral(long qqid, long groupid)
+        public struct QQUser
+        {
+            public long qqId;
+            public int integral;
+        }
+
+        public static int GetUserIntegral(long qqId, long groupId)
         {
             using (var db = new SqliteConnection("Data Source=" + DATABASE_FILE))
             {
                 db.Open();
                 var command = db.CreateCommand();
                 command.CommandText =
-                    @"SELECT count(*) FROM uinfos WHERE qqid=$qqid AND groupid=$groupid";
-                command.Parameters.AddWithValue("$qqid", qqid);
-                command.Parameters.AddWithValue("$groupid", groupid);
+                    @"SELECT count(*) FROM uinfos WHERE qqid=$qqId AND groupid=$groupId";
+                command.Parameters.AddWithValue("$qqId", qqId);
+                command.Parameters.AddWithValue("$groupId", groupId);
 
                 using (var reader = command.ExecuteReader())
                 {
@@ -33,9 +39,9 @@ namespace qqbot2
                             //初始化用户
                             var cmd = db.CreateCommand();
                             cmd.CommandText =
-                                "INSERT INTO uinfos (qqid, integral, groupid, lastchange) VALUES ($qqid, 0, $groupid, time('now'));";
-                            cmd.Parameters.AddWithValue("$qqid", qqid);
-                            cmd.Parameters.AddWithValue("$groupid", groupid);
+                                "INSERT INTO uinfos (qqid, integral, groupid, lastchange) VALUES ($qqId, 0, $groupId, time('now'));";
+                            cmd.Parameters.AddWithValue("$qqId", qqId);
+                            cmd.Parameters.AddWithValue("$groupId", groupId);
 
                             cmd.ExecuteReader();
                             db.Close();
@@ -46,13 +52,12 @@ namespace qqbot2
 
                 command= db.CreateCommand();
                 command.CommandText =
-                    @"SELECT integral FROM uinfos WHERE qqid=$qqid AND groupid=$groupid";
-                command.Parameters.AddWithValue("$qqid", qqid);
-                command.Parameters.AddWithValue("$groupid", groupid);
+                    @"SELECT integral FROM uinfos WHERE qqid=$qqId AND groupid=$groupId";
+                command.Parameters.AddWithValue("$qqId", qqId);
+                command.Parameters.AddWithValue("$groupId", groupId);
 
                 using (var reader = command.ExecuteReader())
                 {
-                    //if ()
                     while (reader.Read())
                     {
                         var userIntegral = reader.GetInt32(0);
@@ -65,24 +70,56 @@ namespace qqbot2
             return 0;
         }
 
-        public static int ChangeUserIntegral(long qqid,long groupid,int values)
+        public static int ChangeUserIntegral(long qqId,long groupId,int values)
         {
+            //Debug
+            return values;
             using (var db = new SqliteConnection("Data Source=" + DATABASE_FILE))
             {
                 db.Open();
                 var command = db.CreateCommand();
                 command.CommandText =
-                    "UPDATE uinfos SET integral=$values WHERE qqid=$qqid AND groupid=$groupid";
+                    "UPDATE uinfos SET integral=$values WHERE qqId=$qqId AND groupId=$groupId";
                 command.Parameters.AddWithValue("$values", values);
-                command.Parameters.AddWithValue("$qqid", qqid);
-                command.Parameters.AddWithValue("$groupid", groupid);
+                command.Parameters.AddWithValue("$qqId", qqId);
+                command.Parameters.AddWithValue("$groupId", groupId);
 
                 command.ExecuteReader();
-                Log.Info("UData", "修改用户 " + qqid.ToString() + " 的积分为 " + values.ToString());
+                Log.Info("UData", "修改用户 " + qqId.ToString() + " 的积分为 " + values.ToString());
                 
                 db.Close();
                 return values;
             }
+        }
+
+        public static List<QQUser> GetTopUsers(long groupId,int numUsers)
+        {
+            var list = new List<QQUser>();
+            using (var db = new SqliteConnection("Data Source=" + DATABASE_FILE))
+            {
+                db.Open();
+                var command = db.CreateCommand();
+                command.CommandText =
+                    "SELECT qqid,integral FROM uinfos WHERE groupId=$groupId ORDER BY integral DESC LIMIT $numUsers";
+                command.Parameters.AddWithValue("$groupId", groupId);
+                command.Parameters.AddWithValue("$numUsers", numUsers);
+
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var user = new QQUser
+                        {
+                            qqId = reader.GetInt64(0),
+                            integral = reader.GetInt32(1)
+                        };
+                        list.Add(user);
+                    }
+                }
+
+                db.Close();
+            }
+            return list;
         }
 
     }

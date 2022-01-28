@@ -48,7 +48,7 @@ namespace qqbot2
             //设置log等级
             Log.LogConfiguration
                .EnableConsoleOutput()
-               .SetLogLevel(LogLevel.Info);
+               .SetLogLevel(LogLevel.Debug);
 
             var conf = new ServerConfig
             {

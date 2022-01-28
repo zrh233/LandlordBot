@@ -40,6 +40,7 @@ namespace qqbot2
         static public int todayRangeRight = 2000;
         static public int MAXNUM = 2000;
         static public int MAXJIANG = 1500;
+        static public int MAXTOPUSER = 10;
         static public int nowPlayer = 0, firstPlayer = 0, landlordPlayer = 0, countMax = 0, playerMax = 0;
         static public int[] countPlayer = new int[5];
         static public long nowUid = 0;
@@ -130,6 +131,8 @@ namespace qqbot2
                     return UserSign(ansMsg, qqId, groupId);
                 case "猜数字":
                     return UserGuess(ansMsg, qqId, groupId, -1);
+                case "斗榜" or "排行榜":
+                    return UserTop(ansMsg, groupId);
                 default:
                     return null;
             }
@@ -230,7 +233,7 @@ namespace qqbot2
                 var uIntegral = Udata.GetUserIntegral(qqId, groupId);
                 var nowIntegral = Udata.ChangeUserIntegral(qqId, groupId, uIntegral + jiang*3);
                 ansMsg.Add(" 猜数字成功！奖励 "+(jiang*3).ToString()+" 积分。其余参与者获得 "+jiang.ToString()+" 积分。\n");
-                foreach (int thisid in todayGuess)
+                foreach (long thisid in todayGuess)
                 {
                     uIntegral = Udata.GetUserIntegral(thisid, groupId);
                     nowIntegral = Udata.ChangeUserIntegral(thisid, groupId, uIntegral + jiang);
@@ -257,6 +260,24 @@ namespace qqbot2
                         + ")");
             return ansMsg;
         }
+
+        //"斗榜"
+        static public Sora.Entities.MessageBody UserTop(Sora.Entities.MessageBody ansMsg,long groupId)
+        {
+            ansMsg.Add("本群积分排行榜：\n");
+            int count = 0;
+            var topUsers = Udata.GetTopUsers(groupId, MAXTOPUSER);
+            foreach (var user in topUsers)
+            {
+                ++count;
+                Log.Debug("Landlord", user.qqId.ToString());
+                ansMsg.Add(count.ToString()+"  ");
+                ansMsg.Add(Sora.Entities.Segment.SoraSegment.At(user.qqId));
+                ansMsg.Add("  " + user.integral.ToString() + "积分\n");
+            }
+            return ansMsg;
+        }
+
 
         //"上桌"
         static public Sora.Entities.MessageBody UpDesk(Sora.Entities.MessageBody ansMsg, long qqId)
