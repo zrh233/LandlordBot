@@ -14,67 +14,67 @@ namespace qqbot2
 {
     class Doudizhu
     {
-        //static public long[] idPlayer = new long[4];
-        //static public int numPlayer = 0;
-        public static List<long> idPlayer = new();
-        public static SortedList users = new();
-        public static DateTime dateToday = DateTime.Today;
+        //public long[] idPlayer = new long[4];
+        //public int numPlayer = 0;
+        public List<long> idPlayer = new();
+        public SortedList users = new();
+        public DateTime dateToday = DateTime.Today;
         public const string fileName = "fightlandlord.ini";
 
-        public static string status = "waiting";
+        public string status = "waiting";
 
-        static public List<List<int>> idCards = new();
-        static public string[] cardShow = new string[]
+        public List<List<int>> idCards = new();
+        public string[] cardShow = new string[]
         {
             "3","4","5","6","7","8","9","10","J","Q","K","A","2","鬼","王","s"
         };
-        static public int[] cardNum = new int[]
+        public int[] cardNum = new int[]
         {
             4,4,4,4,4,4,4,4,4,4,4,4,4,1,1
         };
-        static public List<int> landlordCards = new();
-        static public List<long> todaySign = new();
-        static public List<long> todayGuess = new();
-        static public int todayNumber = 0;
-        static public int todayRangeLeft = 0;
-        static public int todayRangeRight = 1500;
-        static public int MAXNUM = 1500;
-        static public int MAXJIANG = 1500;
-        static public int MAXTOPUSER = 10;
-        static public int INITBOTTOMSCORE = 5;
-        static public int GAMETICKET = 10;
-        static public int gameBottomScore = 5, nowPlayer = 0, firstPlayer = 0, landlordPlayer = 0, countMax = 0, playerMax = 0;
-        static public int[] countPlayer = new int[5];
-        static public long nowUid = 0;
+        public List<int> landlordCards = new();
+        public List<long> todaySign = new();
+        public List<long> todayGuess = new();
+        public int todayNumber = 0;
+        public int todayRangeLeft = 0;
+        public int todayRangeRight = 1500;
+        public int MAXNUM = 1500;
+        public int MAXJIANG = 1500;
+        public int MAXTOPUSER = 10;
+        public int INITBOTTOMSCORE = 5;
+        public int GAMETICKET = 10;
+        public int gameBottomScore = 5, nowPlayer = 0, firstPlayer = 0, landlordPlayer = 0, countMax = 0, playerMax = 0;
+        public int[] countPlayer = new int[5];
+        public long nowUid = 0;
 
-        static public Sora.EventArgs.SoraEvent.GroupMessageEventArgs eArgs = null;
+        public Sora.EventArgs.SoraEvent.GroupMessageEventArgs eArgs = null;
 
 
 
-        static private Sora.Entities.MessageBody Txt2msg(string txt)
+        private Sora.Entities.MessageBody Txt2msg(string txt)
         {
             var aaaaaaa = new Sora.Entities.MessageBody() { };
             aaaaaaa.Add(txt);
             return aaaaaaa;
         }
 
-        static private Sora.Entities.MessageBody AtPlayer(Sora.Entities.MessageBody ansMsg, int thePlayer)
+        private Sora.Entities.MessageBody AtPlayer(Sora.Entities.MessageBody ansMsg, int thePlayer)
         {
             ansMsg.Add(Sora.Entities.Segment.SoraSegment.At(idPlayer[thePlayer]));
             return ansMsg;
         }
 
-        static public async Task<Sora.Entities.MessageBody> Solve(string text, long qqId, long groupId, Sora.EventArgs.SoraEvent.GroupMessageEventArgs eventArgs)
+        public async Task<Sora.Entities.MessageBody> Solve(string text, long qqId, long groupId, Sora.EventArgs.SoraEvent.GroupMessageEventArgs eventArgs)
         {
             var ansMsg = new Sora.Entities.MessageBody() { };
             eArgs = eventArgs;
             var isBotAdmin = await eventArgs.SourceGroup.GetGroupMemberInfo(eventArgs.LoginUid, true);
             if (eventArgs.Sender.Id == 80000000)
                 return null;
-
+            /*
             if (isBotAdmin.memberInfo.Role == Sora.Enumeration.EventParamsType.MemberRoleType.Member)
                 return null;
-
+            */
             //Debug 群主或管理员可以强制模拟成员进行发言
             //      格式： Debug_"QQ号"_内容
             var isUserAdmin = await eventArgs.SourceGroup.GetGroupMemberInfo(qqId, true);
@@ -163,7 +163,7 @@ namespace qqbot2
         }
 
         //查询
-        static public Sora.Entities.MessageBody UserStaus(Sora.Entities.MessageBody ansMsg, long qqId, long groupId)
+        public Sora.Entities.MessageBody UserStaus(Sora.Entities.MessageBody ansMsg, long qqId, long groupId)
         {
             ansMsg.Add(Sora.Entities.Segment.SoraSegment.At(qqId));
             var uIntegral = Udata.GetUserIntegral(qqId, groupId);
@@ -172,7 +172,7 @@ namespace qqbot2
         }
 
         //签到
-        static public Sora.Entities.MessageBody UserSign(Sora.Entities.MessageBody ansMsg, long qqId, long groupId)
+        public Sora.Entities.MessageBody UserSign(Sora.Entities.MessageBody ansMsg, long qqId, long groupId)
         {
             var rand = new Random();
             ansMsg.Add(Sora.Entities.Segment.SoraSegment.At(qqId));
@@ -202,7 +202,7 @@ namespace qqbot2
             return ansMsg;
         }
 
-        public static Sora.Entities.MessageBody GameDouble(Sora.Entities.MessageBody ansMsg,long qqId,int times)
+        public Sora.Entities.MessageBody GameDouble(Sora.Entities.MessageBody ansMsg, long qqId, int times)
         {
             gameBottomScore *= times;
             ansMsg.Add(Sora.Entities.Segment.SoraSegment.At(qqId));
@@ -211,7 +211,7 @@ namespace qqbot2
         }
 
         //我猜**
-        public static Sora.Entities.MessageBody UserGuess(Sora.Entities.MessageBody ansMsg, long qqId, long groupId, int number)
+        public Sora.Entities.MessageBody UserGuess(Sora.Entities.MessageBody ansMsg, long qqId, long groupId, int number)
         {
             var rand = new Random();
             ansMsg.Add(Sora.Entities.Segment.SoraSegment.At(qqId));
@@ -284,7 +284,7 @@ namespace qqbot2
         }
 
         //"斗榜"
-        static public Sora.Entities.MessageBody UserTop(Sora.Entities.MessageBody ansMsg, long groupId)
+        public Sora.Entities.MessageBody UserTop(Sora.Entities.MessageBody ansMsg, long groupId)
         {
             ansMsg.Add("本群积分排行榜：");
             int count = 0;
@@ -302,7 +302,7 @@ namespace qqbot2
 
 
         //"上桌"
-        static public Sora.Entities.MessageBody UpDesk(Sora.Entities.MessageBody ansMsg, long qqId)
+        public Sora.Entities.MessageBody UpDesk(Sora.Entities.MessageBody ansMsg, long qqId)
         {
             ansMsg.Add(Sora.Entities.Segment.SoraSegment.At(qqId));
             if (idPlayer.Contains(qqId))
@@ -324,7 +324,7 @@ namespace qqbot2
         }
 
         //“下桌”
-        static public Sora.Entities.MessageBody DownDesk(Sora.Entities.MessageBody ansMsg, long qqId)
+        public Sora.Entities.MessageBody DownDesk(Sora.Entities.MessageBody ansMsg, long qqId)
         {
             if (idPlayer.Contains(qqId))
             {
@@ -342,7 +342,7 @@ namespace qqbot2
         }
 
         //当前玩家
-        static public Sora.Entities.MessageBody CurrentPlayers(Sora.Entities.MessageBody ansMsg)
+        public Sora.Entities.MessageBody CurrentPlayers(Sora.Entities.MessageBody ansMsg)
         {
             if (idPlayer.Count == 0)
             {
@@ -369,7 +369,7 @@ namespace qqbot2
         }
 
         //重置
-        static public Sora.Entities.MessageBody Reset(Sora.Entities.MessageBody ansMsg)
+        public Sora.Entities.MessageBody Reset(Sora.Entities.MessageBody ansMsg)
         {
             status = "waiting";
             idPlayer.Clear();
@@ -378,7 +378,7 @@ namespace qqbot2
         }
 
         //开始游戏
-        static public async Task<Sora.Entities.MessageBody> GameStartAsync(Sora.Entities.MessageBody ansMsg, Sora.EventArgs.SoraEvent.GroupMessageEventArgs eventArgs)
+        public async Task<Sora.Entities.MessageBody> GameStartAsync(Sora.Entities.MessageBody ansMsg, Sora.EventArgs.SoraEvent.GroupMessageEventArgs eventArgs)
         {
             var rand = new Random();
             if (idPlayer.Count != 3)
@@ -487,7 +487,7 @@ namespace qqbot2
         }
 
         //发送牌组
-        static public async void PrintCards(int userIndex, Sora.EventArgs.SoraEvent.GroupMessageEventArgs eventArgs)
+        public async void PrintCards(int userIndex, Sora.EventArgs.SoraEvent.GroupMessageEventArgs eventArgs)
         {
             idCards[userIndex].Sort();
             string sendPrivateMsg = "";
@@ -501,7 +501,7 @@ namespace qqbot2
         }
 
         //询问叫分
-        static public Sora.Entities.MessageBody GameAskCount(Sora.Entities.MessageBody ansMsg)
+        public Sora.Entities.MessageBody GameAskCount(Sora.Entities.MessageBody ansMsg)
         {
             ansMsg.Add(Sora.Entities.Segment.SoraSegment.At(idPlayer[nowPlayer]));
             ansMsg.Add($"当前底分：{gameBottomScore}。 请输入你想叫的分数：[不叫][1分][2分][3分]\n（同时亦可[加倍][超级加倍]）");
@@ -509,7 +509,7 @@ namespace qqbot2
         }
 
 
-        static public Sora.Entities.MessageBody GameAnsCount(Sora.Entities.MessageBody ansMsg, int ansCount)
+        public Sora.Entities.MessageBody GameAnsCount(Sora.Entities.MessageBody ansMsg, int ansCount)
         {
             if (nowUid != idPlayer[nowPlayer])
             {
@@ -549,7 +549,7 @@ namespace qqbot2
             return GameAskCount(ansMsg);
         }
 
-        static public Sora.Entities.MessageBody GameShowLandlord(Sora.Entities.MessageBody ansMsg)
+        public Sora.Entities.MessageBody GameShowLandlord(Sora.Entities.MessageBody ansMsg)
         {
             status = "playing";
             ansMsg.Add("地主牌为");
@@ -566,7 +566,7 @@ namespace qqbot2
             return ansMsg;
         }
 
-        static public void GameNextPlayer()
+        public void GameNextPlayer()
         {
             ++nowPlayer;
             if (nowPlayer == 3)
@@ -575,7 +575,7 @@ namespace qqbot2
             }
         }
 
-        static public Sora.Entities.MessageBody GameStatus(Sora.Entities.MessageBody ansMsg)
+        public Sora.Entities.MessageBody GameStatus(Sora.Entities.MessageBody ansMsg)
         {
             switch (status)
             {
@@ -597,9 +597,9 @@ namespace qqbot2
 
         }
 
-        static public Sora.Entities.MessageBody GamePlayCards(Sora.Entities.MessageBody ansMsg, string cards, Sora.EventArgs.SoraEvent.GroupMessageEventArgs eventArgs)
+        public Sora.Entities.MessageBody GamePlayCards(Sora.Entities.MessageBody ansMsg, string cards, Sora.EventArgs.SoraEvent.GroupMessageEventArgs eventArgs)
         {
-            if (status!="playing")
+            if (status != "playing")
             {
                 ansMsg.Add(Sora.Entities.Segment.SoraSegment.At(eventArgs.Sender.Id));
                 ansMsg.Add("现在不是出牌的时候！");
@@ -698,7 +698,7 @@ namespace qqbot2
 
         }
 
-        static public Sora.Entities.MessageBody GameWin(Sora.Entities.MessageBody ansMsg, Sora.EventArgs.SoraEvent.GroupMessageEventArgs eventArgs)
+        public Sora.Entities.MessageBody GameWin(Sora.Entities.MessageBody ansMsg, Sora.EventArgs.SoraEvent.GroupMessageEventArgs eventArgs)
         {
             ansMsg = AtPlayer(ansMsg, nowPlayer);
             var winner = "农民";

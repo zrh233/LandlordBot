@@ -7,6 +7,8 @@ using YukariToolBox.LightLog;
 using System.Net.Http;
 using Newtonsoft.Json;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace qqbot2
 {
@@ -20,6 +22,8 @@ namespace qqbot2
     class Program
     {
         static readonly HttpClient client = new();
+
+        static Hashtable groupDdzObj = new();
 
         public static async Task<string> BotApi(string strQuestion)
         {
@@ -79,7 +83,13 @@ namespace qqbot2
                     await eventArgs.Reply(ms2);
                 }
 
-                var ddzAns = await Doudizhu.Solve(eventArgs.Message.RawText, eventArgs.Sender.Id, eventArgs.SourceGroup, eventArgs);
+                if (!groupDdzObj.ContainsKey(eventArgs.SourceGroup))
+                {
+                    groupDdzObj.Add(eventArgs.SourceGroup, new Doudizhu());
+                }
+
+                var nowDdzObj = (Doudizhu)groupDdzObj[eventArgs.SourceGroup];
+                var ddzAns = await nowDdzObj.Solve(eventArgs.Message.RawText, eventArgs.Sender.Id, eventArgs.SourceGroup, eventArgs);
 
                 //Console.WriteLine(ddzAns[0]);//输出回复结果
                 if (ddzAns != null)
