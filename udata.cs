@@ -85,7 +85,7 @@ namespace qqbot2
                 command.Parameters.AddWithValue("$groupId", groupId);
 
                 command.ExecuteReader();
-                Log.Info("UData", "修改用户 " + qqId.ToString() + " 的积分为 " + values.ToString());
+                Log.Info("UData", $"修改用户 {qqId} 的积分为 {values}");
 
                 db.Close();
                 return values;

@@ -37,11 +37,13 @@ namespace qqbot2
         static public List<long> todayGuess = new();
         static public int todayNumber = 0;
         static public int todayRangeLeft = 0;
-        static public int todayRangeRight = 2000;
-        static public int MAXNUM = 2000;
+        static public int todayRangeRight = 1500;
+        static public int MAXNUM = 1500;
         static public int MAXJIANG = 1500;
         static public int MAXTOPUSER = 10;
-        static public int nowPlayer = 0, firstPlayer = 0, landlordPlayer = 0, countMax = 0, playerMax = 0;
+        static public int INITBOTTOMSCORE = 5;
+        static public int GAMETICKET = 5;
+        static public int gameBottomScore = 1, nowPlayer = 0, firstPlayer = 0, landlordPlayer = 0, countMax = 0, playerMax = 0;
         static public int[] countPlayer = new int[5];
         static public long nowUid = 0;
 
@@ -80,9 +82,17 @@ namespace qqbot2
                 && (isBotAdmin.memberInfo.Role == Sora.Enumeration.EventParamsType.MemberRoleType.Admin
                     || isBotAdmin.memberInfo.Role == Sora.Enumeration.EventParamsType.MemberRoleType.Owner))
             {
-                string[] tx = text.Split('_');
-                qqId = Int32.Parse(tx[1]);
-                text = tx[2];
+                try
+                {
+                    string[] tx = text.Split('_');
+                    qqId = long.Parse(tx[1]);
+                    text = tx[2];
+                }
+                catch
+                {
+                    //ansMsg.Add(" 猜数字失败，请检查你的数字！");
+                    return null;
+                };
             }
             //!Debug
             nowUid = qqId;
@@ -90,14 +100,24 @@ namespace qqbot2
 
             if (text[0] == '出' || text[0] == '+')
             {
-                return GamePlayCards(ansMsg, text[1..]);
+                return GamePlayCards(ansMsg, text[1..], eventArgs);
             }
 
             if (text.IndexOf("我猜") > -1)
             {
-                var guessNumber = int.Parse(text[2..]);
-                //Console.WriteLine(guessNumber.ToString());
-                return UserGuess(ansMsg, qqId, groupId, guessNumber);
+                try
+                {
+                    var guessNumber = int.Parse(text[2..]);
+                    //Console.WriteLine(guessNumber.ToString());
+                    return UserGuess(ansMsg, qqId, groupId, guessNumber);
+                }
+                catch
+                {
+                    ansMsg.Add(" 猜数字失败，请检查你的数字！");
+                    return ansMsg;
+                }
+
+
             }
 
             switch (text)
@@ -112,7 +132,7 @@ namespace qqbot2
                 case "重置":
                     return Reset(ansMsg);
                 case "开打":
-                    return GameStart(ansMsg, eventArgs);
+                    return await GameStartAsync(ansMsg, eventArgs);
                 case "1分":
                     return GameAnsCount(ansMsg, 1);
                 case "2分":
@@ -122,7 +142,7 @@ namespace qqbot2
                 case "不叫":
                     return GameAnsCount(ansMsg, 0);
                 case "不出":
-                    return GamePlayCards(ansMsg, "");
+                    return GamePlayCards(ansMsg, "", eventArgs);
                 case "状况" or "牌局" or "=":
                     return GameStatus(ansMsg);
                 case "查询":
@@ -143,7 +163,7 @@ namespace qqbot2
         {
             ansMsg.Add(Sora.Entities.Segment.SoraSegment.At(qqId));
             var uIntegral = Udata.GetUserIntegral(qqId, groupId);
-            ansMsg.Add(" 你的积分为：" + uIntegral.ToString() + "! ");
+            ansMsg.Add($" 你的积分为：{uIntegral}! ");
             return ansMsg;
         }
 
@@ -161,7 +181,7 @@ namespace qqbot2
                 todayNumber = rand.Next(MAXNUM - 2) + 1;//MAXNUM
                 todayRangeLeft = 0;
                 todayRangeRight = MAXNUM;
-                Log.Info("Landlord", "今日数字：" + todayNumber.ToString());
+                Log.Info("Landlord", $"今日数字：{todayNumber}");
             }
 
             if (todaySign.Contains(qqId))
@@ -174,10 +194,11 @@ namespace qqbot2
             var uIntegral = Udata.GetUserIntegral(qqId, groupId);
             int signIntergral = rand.Next(150) + 50;
             var nowIntegral = Udata.ChangeUserIntegral(qqId, groupId, uIntegral + signIntergral);
-            ansMsg.Add(" 签到成功！获得积分" + signIntergral.ToString() + "! 你的当前积分为：" + nowIntegral.ToString() + "! ");
+            ansMsg.Add($" 签到成功！获得积分{signIntergral}! 你的当前积分为：{nowIntegral}! ");
             return ansMsg;
         }
 
+        //我猜**
         public static Sora.Entities.MessageBody UserGuess(Sora.Entities.MessageBody ansMsg, long qqId, long groupId, int number)
         {
             var rand = new Random();
@@ -191,19 +212,15 @@ namespace qqbot2
                 todayNumber = rand.Next(MAXNUM);//MAXNUM
                 todayRangeLeft = 0;
                 todayRangeRight = MAXNUM;
-                Log.Info("Landlord", "今日数字：" + todayNumber.ToString());
+                Log.Info("Landlord", $"今日数字：{todayNumber}");
             }
 
             if (number <= 0)
             {
                 if (todayRangeLeft == todayRangeRight)
-                    ansMsg.Add(" 数字猜完了！今天的数字是 " + todayRangeLeft);
+                    ansMsg.Add($" 数字猜完了！今天的数字是 {todayRangeLeft}");
                 else
-                    ansMsg.Add(" 当前猜数字范围为：("
-                        + todayRangeLeft.ToString()
-                        + ","
-                        + todayRangeRight.ToString()
-                        + ")");
+                    ansMsg.Add($" 当前猜数字范围为：({todayRangeLeft},{todayRangeRight})");
                 return ansMsg;
             }
 
@@ -215,11 +232,7 @@ namespace qqbot2
 
             if (number <= todayRangeLeft || number >= todayRangeRight)
             {
-                ansMsg.Add(" 猜数字失败，超出数据范围！当前猜数字范围为：("
-                        + todayRangeLeft.ToString()
-                        + ","
-                        + todayRangeRight.ToString()
-                        + ")");
+                ansMsg.Add($" 猜数字失败，超出数据范围！当前猜数字范围为：({todayRangeLeft},{todayRangeRight})");
                 return ansMsg;
             }
 
@@ -232,7 +245,7 @@ namespace qqbot2
                 int jiang = MAXJIANG / (3 + todayGuess.Count);
                 var uIntegral = Udata.GetUserIntegral(qqId, groupId);
                 var nowIntegral = Udata.ChangeUserIntegral(qqId, groupId, uIntegral + jiang * 3);
-                ansMsg.Add(" 猜数字成功！奖励 " + (jiang * 3).ToString() + " 积分。其余参与者获得 " + jiang.ToString() + " 积分。");
+                ansMsg.Add($" 猜数字成功！奖励 {jiang * 3} 积分。其余参与者获得 {jiang} 积分。");
                 foreach (long thisid in todayGuess)
                 {
                     uIntegral = Udata.GetUserIntegral(thisid, groupId);
@@ -254,11 +267,7 @@ namespace qqbot2
                 todayRangeRight = number;
             }
 
-            ansMsg.Add(" 猜错了！当前猜数字范围为：("
-                        + todayRangeLeft.ToString()
-                        + ","
-                        + todayRangeRight.ToString()
-                        + ")");
+            ansMsg.Add($" 猜错了！当前猜数字范围为：({todayRangeLeft},{todayRangeRight})");
             return ansMsg;
         }
 
@@ -272,9 +281,9 @@ namespace qqbot2
             {
                 ++count;
                 Log.Debug("Landlord", user.qqId.ToString());
-                ansMsg.Add("\n" + count.ToString() + "  ");
+                ansMsg.Add($"\n{count}  ");
                 ansMsg.Add(Sora.Entities.Segment.SoraSegment.At(user.qqId));
-                ansMsg.Add("  " + user.integral.ToString() + "积分");
+                ansMsg.Add($"  {user.integral}积分");
             }
             return ansMsg;
         }
@@ -320,7 +329,7 @@ namespace qqbot2
             }
         }
 
-
+        //当前玩家
         static public Sora.Entities.MessageBody CurrentPlayers(Sora.Entities.MessageBody ansMsg)
         {
             if (idPlayer.Count == 0)
@@ -330,13 +339,13 @@ namespace qqbot2
             }
             else
             {
-                ansMsg.Add($"当前有 {idPlayer.Count} 个玩家,他们是 ");
+                ansMsg.Add($"当前底分为 {gameBottomScore} 积分。桌上有 {idPlayer.Count} 个玩家,他们是 ");
                 for (int i = 0; i <= idPlayer.Count - 1; ++i)
                 {
                     ansMsg.Add(Sora.Entities.Segment.SoraSegment.At((long)idPlayer[i]));
                     if (status == "playing")
                     {
-                        ansMsg.Add($"(还剩{idCards[i].Count}张) ");
+                        ansMsg.Add($"(还剩{idCards[i].Count}张)   ");
                     }
                 }
                 if (idPlayer.Count == 3 && status == "waiting")
@@ -346,6 +355,8 @@ namespace qqbot2
                 return ansMsg;
             }
         }
+
+        //重置
         static public Sora.Entities.MessageBody Reset(Sora.Entities.MessageBody ansMsg)
         {
             status = "waiting";
@@ -354,7 +365,8 @@ namespace qqbot2
             return ansMsg;
         }
 
-        static public Sora.Entities.MessageBody GameStart(Sora.Entities.MessageBody ansMsg, Sora.EventArgs.SoraEvent.GroupMessageEventArgs eventArgs)
+        //开始游戏
+        static public async Task<Sora.Entities.MessageBody> GameStartAsync(Sora.Entities.MessageBody ansMsg, Sora.EventArgs.SoraEvent.GroupMessageEventArgs eventArgs)
         {
             var rand = new Random();
             if (idPlayer.Count != 3)
@@ -370,11 +382,43 @@ namespace qqbot2
                 return CurrentPlayers(ansMsg);
             }
 
+            var friendListAns = await eventArgs.SoraApi.GetFriendList();
+            var friendList = friendListAns.friendList;
+
+            for (int i = 0; i < 3; i++)
+            {
+                if (!friendList.Any(nn => nn.UserId.Equals(idPlayer[i])))
+                {
+                    ansMsg.Add(Sora.Entities.Segment.SoraSegment.At(idPlayer[i]));
+                    ansMsg.Add(" 请先添加我为好友再游戏！即将下桌。");
+                    return ansMsg;
+                }
+            }
+
+            for (int i = 0; i < 3; i++)
+            {
+                var nowIntegral = Udata.GetUserIntegral(idPlayer[i], eventArgs.SourceGroup.Id);
+                if (nowIntegral <= GAMETICKET)
+                {
+                    ansMsg.Add(Sora.Entities.Segment.SoraSegment.At(idPlayer[i]));
+                    ansMsg.Add(" 你已经没有积分可以开打了! 请下桌！");
+                    return CurrentPlayers(ansMsg);
+                }
+            }
+            for (int i = 0; i < 3; i++)
+            {
+                var nowIntegral = Udata.GetUserIntegral(idPlayer[i], eventArgs.SourceGroup.Id);
+                _ = Udata.ChangeUserIntegral(idPlayer[i], eventArgs.SourceGroup.Id, nowIntegral - GAMETICKET);
+            }
 
             status = "counting";
             //Console.WriteLine("tring to play");
             //开打
             idCards.Clear();
+
+            //扣除积分
+
+
             //清空牌组
             for (int i = 1; i <= 5; ++i)
             {
@@ -418,8 +462,8 @@ namespace qqbot2
                 PrintCards(i, eventArgs);
             }
 
-
-            ansMsg.Add("已发送牌组！\n");
+            gameBottomScore = INITBOTTOMSCORE;
+            ansMsg.Add($"游戏开始，每人扣除门票 {GAMETICKET} 积分。已发送牌组！\n");
             //计算第一个上桌顺序
             nowPlayer = rand.Next(0, 3);
             firstPlayer = nowPlayer;
@@ -430,6 +474,7 @@ namespace qqbot2
             return ansMsg;
         }
 
+        //发送牌组
         static public async void PrintCards(int userIndex, Sora.EventArgs.SoraEvent.GroupMessageEventArgs eventArgs)
         {
             idCards[userIndex].Sort();
@@ -439,15 +484,18 @@ namespace qqbot2
                 sendPrivateMsg += $"[{cardShow[cardInt]}]";
             }
             Log.Info("Landlord", sendPrivateMsg);
-            await eventArgs.SoraApi.SendTemporaryMessage(idPlayer[userIndex], eventArgs.SourceGroup.Id, sendPrivateMsg);
+            //await eventArgs.SoraApi.SendTemporaryMessage(idPlayer[userIndex], eventArgs.SourceGroup.Id, sendPrivateMsg);
+            await eventArgs.SoraApi.SendPrivateMessage(idPlayer[userIndex], sendPrivateMsg);
         }
 
+        //询问叫分
         static public Sora.Entities.MessageBody GameAskCount(Sora.Entities.MessageBody ansMsg)
         {
             ansMsg.Add(Sora.Entities.Segment.SoraSegment.At(idPlayer[nowPlayer]));
-            ansMsg.Add("请输入你想叫的分数：[不叫][1分][2分][3分]");
+            ansMsg.Add($"当前底分：{gameBottomScore}。 请输入你想叫的分数：[不叫][1分][2分][3分]");
             return ansMsg;
         }
+
 
         static public Sora.Entities.MessageBody GameAnsCount(Sora.Entities.MessageBody ansMsg, int ansCount)
         {
@@ -458,6 +506,10 @@ namespace qqbot2
                 return ansMsg;
             }
             countPlayer[nowPlayer] = ansCount;
+            if (ansCount > 0)
+            {
+                gameBottomScore *= ansCount;
+            }
             if (ansCount == 3)
             {
                 landlordPlayer = nowPlayer;
@@ -473,7 +525,7 @@ namespace qqbot2
             {
                 if (countMax == 0)
                 {
-                    ansMsg.Add("请自行重开。\n");
+                    ansMsg.Add("请重开。\n");
                     return Reset(ansMsg);
                 }
                 else
@@ -533,7 +585,7 @@ namespace qqbot2
 
         }
 
-        static public Sora.Entities.MessageBody GamePlayCards(Sora.Entities.MessageBody ansMsg, string cards)
+        static public Sora.Entities.MessageBody GamePlayCards(Sora.Entities.MessageBody ansMsg, string cards, Sora.EventArgs.SoraEvent.GroupMessageEventArgs eventArgs)
         {
             if (nowUid != idPlayer[nowPlayer])
             {
@@ -586,11 +638,23 @@ namespace qqbot2
                     return ansMsg;
                 }
             }
-            //Console.WriteLine("te");
+
+            //处理炸弹火箭加倍
+            if (nowCardList.Count == 4 && nowCardList.Count(tt => tt == nowCardList[0]) == 4)
+            {
+                gameBottomScore *= 2;
+                ansMsg.Add("炸弹！加倍！\n");
+            }
+            if (nowCardList.Count == 2 && nowCardList.Contains(13) && nowCardList.Contains(14))
+            {
+                gameBottomScore *= 2;
+                ansMsg.Add("火箭！加倍！\n");
+            }
+
             idCards[nowPlayer] = diffCardList;
             if (diffCardList.Count == 0)
             {
-                return GameWin(ansMsg);
+                return GameWin(ansMsg, eventArgs);
             }
             else
             {
@@ -615,21 +679,55 @@ namespace qqbot2
 
         }
 
-        static public Sora.Entities.MessageBody GameWin(Sora.Entities.MessageBody ansMsg)
+        static public Sora.Entities.MessageBody GameWin(Sora.Entities.MessageBody ansMsg, Sora.EventArgs.SoraEvent.GroupMessageEventArgs eventArgs)
         {
             ansMsg = AtPlayer(ansMsg, nowPlayer);
-            ansMsg.Add("胜利！");
+            var winner = "农民";
+            if (nowPlayer == landlordPlayer)
+            {
+                winner = "地主";
+            }
+            ansMsg.Add($"{winner}胜利！");
             for (int i = 0; i < 3; i++)
             {
                 ansMsg.Add("\n");
                 ansMsg = AtPlayer(ansMsg, i);
-                ansMsg.Add("的牌：");
+
+                var playerCount = gameBottomScore;
+                if (i == landlordPlayer)
+                {
+                    playerCount *= 2;
+                    if (winner == "农民")
+                    {
+                        playerCount *= -1;
+                    }
+                }
+                else
+                {
+                    if (winner == "地主")
+                    {
+                        playerCount *= -1;
+                    }
+                }
+                var nowIntegral = Udata.GetUserIntegral(idPlayer[i], eventArgs.SourceGroup.Id);
+                nowIntegral = Udata.ChangeUserIntegral(idPlayer[i], eventArgs.SourceGroup.Id, nowIntegral + playerCount);
+
+                if (playerCount > 0)
+                {
+                    ansMsg.Add("+");
+                }
+                ansMsg.Add(playerCount.ToString());
+                ansMsg.Add($"积分（当前{nowIntegral}）");
+
+                ansMsg.Add($"  剩余牌：");
                 foreach (var card in idCards[i])
                 {
                     ansMsg.Add($"[{cardShow[card]}]");
                 }
             }
             ansMsg = CurrentPlayers(ansMsg);
+
+            gameBottomScore = 1;
             return Reset(ansMsg);
         }
 
