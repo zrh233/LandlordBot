@@ -42,8 +42,8 @@ namespace qqbot2
         static public int MAXJIANG = 1500;
         static public int MAXTOPUSER = 10;
         static public int INITBOTTOMSCORE = 5;
-        static public int GAMETICKET = 5;
-        static public int gameBottomScore = 1, nowPlayer = 0, firstPlayer = 0, landlordPlayer = 0, countMax = 0, playerMax = 0;
+        static public int GAMETICKET = 10;
+        static public int gameBottomScore = 5, nowPlayer = 0, firstPlayer = 0, landlordPlayer = 0, countMax = 0, playerMax = 0;
         static public int[] countPlayer = new int[5];
         static public long nowUid = 0;
 
@@ -153,6 +153,10 @@ namespace qqbot2
                     return UserGuess(ansMsg, qqId, groupId, -1);
                 case "斗榜" or "排行榜":
                     return UserTop(ansMsg, groupId);
+                case "加倍":
+                    return GameDouble(ansMsg, qqId, 2);
+                case "超级加倍":
+                    return GameDouble(ansMsg, qqId, 4);
                 default:
                     return null;
             }
@@ -195,6 +199,14 @@ namespace qqbot2
             int signIntergral = rand.Next(150) + 50;
             var nowIntegral = Udata.ChangeUserIntegral(qqId, groupId, uIntegral + signIntergral);
             ansMsg.Add($" 签到成功！获得积分{signIntergral}! 你的当前积分为：{nowIntegral}! ");
+            return ansMsg;
+        }
+
+        public static Sora.Entities.MessageBody GameDouble(Sora.Entities.MessageBody ansMsg,long qqId,int times)
+        {
+            gameBottomScore *= times;
+            ansMsg.Add(Sora.Entities.Segment.SoraSegment.At(qqId));
+            ansMsg.Add($"加倍成功！当前底分为 {gameBottomScore}");
             return ansMsg;
         }
 
@@ -390,7 +402,7 @@ namespace qqbot2
                 if (!friendList.Any(nn => nn.UserId.Equals(idPlayer[i])))
                 {
                     ansMsg.Add(Sora.Entities.Segment.SoraSegment.At(idPlayer[i]));
-                    ansMsg.Add(" 请先添加我为好友再游戏！即将下桌。");
+                    ansMsg.Add(" 请先添加我为好友再重新开打！");
                     return ansMsg;
                 }
             }
@@ -492,7 +504,7 @@ namespace qqbot2
         static public Sora.Entities.MessageBody GameAskCount(Sora.Entities.MessageBody ansMsg)
         {
             ansMsg.Add(Sora.Entities.Segment.SoraSegment.At(idPlayer[nowPlayer]));
-            ansMsg.Add($"当前底分：{gameBottomScore}。 请输入你想叫的分数：[不叫][1分][2分][3分]");
+            ansMsg.Add($"当前底分：{gameBottomScore}。 请输入你想叫的分数：[不叫][1分][2分][3分]\n（同时亦可[加倍][超级加倍]）");
             return ansMsg;
         }
 
@@ -587,8 +599,15 @@ namespace qqbot2
 
         static public Sora.Entities.MessageBody GamePlayCards(Sora.Entities.MessageBody ansMsg, string cards, Sora.EventArgs.SoraEvent.GroupMessageEventArgs eventArgs)
         {
+            if (status!="playing")
+            {
+                ansMsg.Add(Sora.Entities.Segment.SoraSegment.At(eventArgs.Sender.Id));
+                ansMsg.Add("现在不是出牌的时候！");
+                return ansMsg;
+            }
             if (nowUid != idPlayer[nowPlayer])
             {
+                ansMsg.Add(Sora.Entities.Segment.SoraSegment.At(eventArgs.Sender.Id));
                 ansMsg.Add("关你P事！现在轮到：");
                 ansMsg = AtPlayer(ansMsg, nowPlayer);
                 return ansMsg;
@@ -727,7 +746,7 @@ namespace qqbot2
             }
             ansMsg = CurrentPlayers(ansMsg);
 
-            gameBottomScore = 1;
+            gameBottomScore = INITBOTTOMSCORE;
             return Reset(ansMsg);
         }
 
