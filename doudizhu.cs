@@ -735,7 +735,7 @@ namespace qqbot2
             }
             else if (nowCardList.Count >= 6
                 && countCards.Count == nowCardList.Count * 2
-                && countCards.Values.ToList().Exists(x => x != 2)
+                && !countCards.Values.ToList().Exists(x => x != 2)
                 && nowCardList[0] + countCards.Count - 1 == nowCardList[^1]
                 && nowCardList.Max() < 12)
             {
@@ -743,13 +743,13 @@ namespace qqbot2
             }
             else if (nowCardList.Count >= 6
                 && countCards.Count == nowCardList.Count * 3
-                && countCards.Values.ToList().Exists(x => x != 3)
+                && !countCards.Values.ToList().Exists(x => x != 3)
                 && nowCardList[0] + countCards.Count - 1 == nowCardList[^1]
                 && nowCardList.Max() < 12)
             {
                 ansMsg.Add("飞机\n");
             }
-            else if (countCards.Count >= 8)
+            else if (nowCardList.Count >= 8)
             {
                 //飞机带翅膀
                 //分离一张两张和三张
