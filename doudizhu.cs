@@ -43,6 +43,7 @@ namespace qqbot2
         public int MAXTOPUSER = 10;
         public int INITBOTTOMSCORE = 5;
         public int GAMETICKET = 10;
+        public long ADMINQQID = 11111111;
         public int gameBottomScore = 5, nowPlayer = 0, firstPlayer = 0, landlordPlayer = 0, countMax = 0, playerMax = 0;
         public int[] countPlayer = new int[5];
         public long nowUid = 0;
@@ -79,8 +80,7 @@ namespace qqbot2
             //      格式： Debug_"QQ号"_内容
             var isUserAdmin = await eventArgs.SourceGroup.GetGroupMemberInfo(qqId, true);
             if (text.IndexOf("Debug_") > -1
-                && (isBotAdmin.memberInfo.Role == Sora.Enumeration.EventParamsType.MemberRoleType.Admin
-                    || isBotAdmin.memberInfo.Role == Sora.Enumeration.EventParamsType.MemberRoleType.Owner))
+                && (qqId == ADMINQQID))
             {
                 try
                 {
@@ -90,7 +90,6 @@ namespace qqbot2
                 }
                 catch
                 {
-                    //ansMsg.Add(" 猜数字失败，请检查你的数字！");
                     return null;
                 };
             }
@@ -103,7 +102,7 @@ namespace qqbot2
                 return GamePlayCards(ansMsg, text[1..], eventArgs);
             }
 
-            if (text.IndexOf("我猜") > -1)
+            if (text.IndexOf("我猜") == 0 && text.Length < 10)
             {
                 try
                 {
@@ -204,6 +203,18 @@ namespace qqbot2
 
         public Sora.Entities.MessageBody GameDouble(Sora.Entities.MessageBody ansMsg, long qqId, int times)
         {
+            if (status != "counting")
+            {
+                ansMsg.Add(Sora.Entities.Segment.SoraSegment.At(qqId));
+                ansMsg.Add("现在不能加倍！");
+                return ansMsg;
+            }
+            if (!idPlayer.Contains(qqId))
+            {
+                ansMsg.Add(Sora.Entities.Segment.SoraSegment.At(qqId));
+                ansMsg.Add("你不是玩家！不能加倍。");
+                return ansMsg;
+            }
             gameBottomScore *= times;
             ansMsg.Add(Sora.Entities.Segment.SoraSegment.At(qqId));
             ansMsg.Add($"加倍成功！当前底分为 {gameBottomScore}");
@@ -504,7 +515,7 @@ namespace qqbot2
         public Sora.Entities.MessageBody GameAskCount(Sora.Entities.MessageBody ansMsg)
         {
             ansMsg.Add(Sora.Entities.Segment.SoraSegment.At(idPlayer[nowPlayer]));
-            ansMsg.Add($"当前底分：{gameBottomScore}。 请输入你想叫的分数：[不叫][1分][2分][3分]\n（同时亦可[加倍][超级加倍]）");
+            ansMsg.Add($"当前底分：{gameBottomScore}。 请输入你想叫的分数：[不叫][1分][2分][3分]\n（同时在场玩家亦可[加倍][超级加倍]）");
             return ansMsg;
         }
 
@@ -658,17 +669,142 @@ namespace qqbot2
                 }
             }
 
-            //处理炸弹火箭加倍
-            if (nowCardList.Count == 4 && nowCardList.Count(tt => tt == nowCardList[0]) == 4)
+            //统计各牌的张数
+            Dictionary<int, int> countCards = new();
+            foreach (int card in nowCardList)
+            {
+                if (countCards.ContainsKey(card))
+                {
+                    countCards[card]++;
+                }
+                else
+                {
+                    countCards.Add(card, 1);
+                }
+            }
+
+            //处理各种牌型
+            if (nowCardList.Count == 4 && countCards.ContainsValue(4))
             {
                 gameBottomScore *= 2;
                 ansMsg.Add("炸弹！加倍！\n");
             }
-            if (nowCardList.Count == 2 && nowCardList.Contains(13) && nowCardList.Contains(14))
+            else if (nowCardList.Count == 2 && nowCardList.Contains(13) && nowCardList.Contains(14))
             {
                 gameBottomScore *= 2;
                 ansMsg.Add("火箭！加倍！\n");
             }
+            else if (nowCardList.Count == 0)
+            {
+                ansMsg.Add("不出\n");
+            }
+            else if (nowCardList.Count == 1)
+            {
+                ansMsg.Add("单个牌\n");
+            }
+            else if (nowCardList.Count == 2 && countCards.ContainsValue(2))
+            {
+                ansMsg.Add("对子牌\n");
+            }
+            else if (nowCardList.Count == 3 && countCards.ContainsValue(3))
+            {
+                ansMsg.Add("三张牌\n");
+            }
+            else if (nowCardList.Count == 4 && countCards.ContainsValue(3) && countCards.ContainsValue(1))
+            {
+                ansMsg.Add("三带一\n");
+            }
+            else if (nowCardList.Count == 5 && countCards.ContainsValue(3) && countCards.ContainsValue(2))
+            {
+                ansMsg.Add("三带二\n");
+            }
+            else if (nowCardList.Count == 6 && countCards.ContainsValue(4) && countCards.ContainsValue(1))
+            {
+                ansMsg.Add("四带二\n");
+            }
+            else if (nowCardList.Count == 8 && countCards.ContainsValue(2) && !countCards.ContainsValue(2))
+            {
+                ansMsg.Add("四带两对\n");
+            }
+            else if (nowCardList.Count >= 5
+                && countCards.Count == nowCardList.Count
+                && nowCardList[0] + countCards.Count - 1 == nowCardList[^1]
+                && nowCardList.Max() < 12)
+            {
+                ansMsg.Add("顺子\n");
+            }
+            else if (nowCardList.Count >= 6
+                && countCards.Count == nowCardList.Count * 2
+                && countCards.Values.ToList().Exists(x => x != 2)
+                && nowCardList[0] + countCards.Count - 1 == nowCardList[^1]
+                && nowCardList.Max() < 12)
+            {
+                ansMsg.Add("连对\n");
+            }
+            else if (nowCardList.Count >= 6
+                && countCards.Count == nowCardList.Count * 3
+                && countCards.Values.ToList().Exists(x => x != 3)
+                && nowCardList[0] + countCards.Count - 1 == nowCardList[^1]
+                && nowCardList.Max() < 12)
+            {
+                ansMsg.Add("飞机\n");
+            }
+            else if (countCards.Count >= 8)
+            {
+                //飞机带翅膀
+                //分离一张两张和三张
+                List<List<int>> arrayCountCards = new();
+                foreach (var cardCount in countCards)
+                {
+                    if (cardCount.Value <= 3)
+                    {
+                        arrayCountCards[cardCount.Value].Add(cardCount.Key);
+                    }
+                    else
+                    {
+                        ansMsg = AtPlayer(ansMsg, nowPlayer);
+                        ansMsg.Add("出牌不符合规则！请重试。\n");
+                        Log.Info("Landlord", "错误1");
+                        return ansMsg;
+                    }
+                }
+                if (arrayCountCards[1].Count > 0 && arrayCountCards[2].Count > 0)
+                {
+                    ansMsg = AtPlayer(ansMsg, nowPlayer);
+                    ansMsg.Add("出牌不符合规则！请重试。\n");
+                    Log.Info("Landlord", "错误2");
+                    return ansMsg;
+                }
+                if (arrayCountCards[1].Count + arrayCountCards[2].Count != arrayCountCards[3].Count)
+                {
+                    ansMsg = AtPlayer(ansMsg, nowPlayer);
+                    ansMsg.Add("出牌不符合规则！请重试。\n");
+                    Log.Info("Landlord", "错误4");
+                    return ansMsg;
+                }
+                arrayCountCards[3].Sort();
+                if (arrayCountCards[3][0] + arrayCountCards[3].Count - 1 == arrayCountCards[3][^1]
+                    && arrayCountCards[3].Max() < 12)
+                {
+                    ansMsg.Add("飞机带翅膀！\n");
+                }
+                else
+                {
+                    ansMsg = AtPlayer(ansMsg, nowPlayer);
+                    ansMsg.Add("出牌不符合规则！请重试。\n");
+                    Log.Info("Landlord", "错误5");
+                    return ansMsg;
+                }
+            }
+            else
+            {
+                ansMsg = AtPlayer(ansMsg, nowPlayer);
+                ansMsg.Add("出牌不符合规则！请重试。\n");
+                Log.Info("Landlord", "错误6");
+                return ansMsg;
+            }
+
+
 
             idCards[nowPlayer] = diffCardList;
             if (diffCardList.Count == 0)
