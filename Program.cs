@@ -85,7 +85,11 @@ namespace qqbot2
 
                 if (!groupDdzObj.ContainsKey(eventArgs.SourceGroup))
                 {
-                    groupDdzObj.Add(eventArgs.SourceGroup, new Doudizhu());
+                    try
+                    {
+                        groupDdzObj.Add(eventArgs.SourceGroup, new Doudizhu());
+                    }
+                    catch { }
                 }
 
                 var nowDdzObj = (Doudizhu)groupDdzObj[eventArgs.SourceGroup];

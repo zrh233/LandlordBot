@@ -734,7 +734,7 @@ namespace qqbot2
                 ansMsg.Add("顺子\n");
             }
             else if (nowCardList.Count >= 6
-                && countCards.Count == nowCardList.Count * 2
+                && countCards.Count * 2 == nowCardList.Count
                 && !countCards.Values.ToList().Exists(x => x != 2)
                 && nowCardList[0] + countCards.Count - 1 == nowCardList[^1]
                 && nowCardList.Max() < 12)
@@ -742,7 +742,7 @@ namespace qqbot2
                 ansMsg.Add("连对\n");
             }
             else if (nowCardList.Count >= 6
-                && countCards.Count == nowCardList.Count * 3
+                && countCards.Count * 3 == nowCardList.Count
                 && !countCards.Values.ToList().Exists(x => x != 3)
                 && nowCardList[0] + countCards.Count - 1 == nowCardList[^1]
                 && nowCardList.Max() < 12)
