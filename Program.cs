@@ -23,7 +23,7 @@ namespace qqbot2
     {
         static readonly HttpClient client = new();
 
-        static Hashtable groupDdzObj = new();
+        static Dictionary<long, Doudizhu> groupDdzObj = new();
 
         public static async Task<string> BotApi(string strQuestion)
         {
@@ -85,14 +85,10 @@ namespace qqbot2
 
                 if (!groupDdzObj.ContainsKey(eventArgs.SourceGroup))
                 {
-                    try
-                    {
-                        groupDdzObj.Add(eventArgs.SourceGroup, new Doudizhu());
-                    }
-                    catch { }
+                    groupDdzObj.TryAdd(eventArgs.SourceGroup, new Doudizhu());
                 }
 
-                var nowDdzObj = (Doudizhu)groupDdzObj[eventArgs.SourceGroup];
+                var nowDdzObj = groupDdzObj[eventArgs.SourceGroup];
                 var ddzAns = await nowDdzObj.Solve(eventArgs.Message.RawText, eventArgs.Sender.Id, eventArgs.SourceGroup, eventArgs);
 
                 //Console.WriteLine(ddzAns[0]);//输出回复结果

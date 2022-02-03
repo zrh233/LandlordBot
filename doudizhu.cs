@@ -38,6 +38,7 @@ namespace qqbot2
         public int todayNumber = 0;
         public int todayRangeLeft = 0;
         public int todayRangeRight = 1500;
+        public long sourceGroupId;
         public int MAXNUM = 1500;
         public int MAXJIANG = 1500;
         public int MAXTOPUSER = 10;
@@ -69,6 +70,7 @@ namespace qqbot2
         {
             var ansMsg = new Sora.Entities.MessageBody() { };
             eArgs = eventArgs;
+            sourceGroupId = groupId;
             var isBotAdmin = await eventArgs.SourceGroup.GetGroupMemberInfo(eventArgs.LoginUid, true);
             if (eventArgs.Sender.Id == 80000000)
                 return null;
@@ -129,7 +131,14 @@ namespace qqbot2
                 case "下桌":
                     return DownDesk(ansMsg, qqId);
                 case "重置":
+                    if (qqId != ADMINQQID)
+                    {
+                        ansMsg.Add("你没有权限重置！");
+                        return ansMsg;
+                    }
                     return Reset(ansMsg);
+                case "逃跑":
+                    return GameRun(ansMsg, qqId);
                 case "开打":
                     return await GameStartAsync(ansMsg, eventArgs);
                 case "1分":
@@ -337,6 +346,12 @@ namespace qqbot2
         //“下桌”
         public Sora.Entities.MessageBody DownDesk(Sora.Entities.MessageBody ansMsg, long qqId)
         {
+            if (status == "playing" || status == "counting")
+            {
+                ansMsg.Add(Sora.Entities.Segment.SoraSegment.At(qqId));
+                ansMsg.Add("现在不能下桌！你可以选择扣分[逃跑]");
+                return ansMsg;
+            }
             if (idPlayer.Contains(qqId))
             {
                 idPlayer.Remove(qqId);
@@ -350,6 +365,38 @@ namespace qqbot2
                 CurrentPlayers(ansMsg);
                 return ansMsg;
             }
+        }
+
+
+        //逃跑
+        public Sora.Entities.MessageBody GameRun(Sora.Entities.MessageBody ansMsg, long qqId)
+        {
+            ansMsg.Add(Sora.Entities.Segment.SoraSegment.At(qqId));
+            if (status == "waiting")
+            {
+                ansMsg.Add("现在无需逃跑！");
+                return ansMsg;
+            }
+            if (!idPlayer.Contains(qqId))
+            {
+                ansMsg.Add("你不是玩家！");
+                return ansMsg;
+            }
+            var nowIntegral = Udata.GetUserIntegral(qqId, sourceGroupId);
+            nowIntegral = Udata.ChangeUserIntegral(qqId, sourceGroupId, nowIntegral - gameBottomScore * 4);
+            ansMsg.Add($"逃跑！积分 -{gameBottomScore * 4} (当前{nowIntegral})\n");
+
+            idPlayer.Remove(qqId);
+            foreach (long id in idPlayer)
+            {
+                var nowIntegral2 = Udata.GetUserIntegral(id, sourceGroupId);
+                nowIntegral2 = Udata.ChangeUserIntegral(id, sourceGroupId, nowIntegral2 + gameBottomScore * 2);
+                ansMsg.Add(Sora.Entities.Segment.SoraSegment.At(id));
+                ansMsg.Add($"积分 +{gameBottomScore * 2} (当前{nowIntegral2})\n)");
+            }
+
+            status = "waiting";
+            return Reset(ansMsg);
         }
 
         //当前玩家
@@ -383,6 +430,7 @@ namespace qqbot2
         public Sora.Entities.MessageBody Reset(Sora.Entities.MessageBody ansMsg)
         {
             status = "waiting";
+            gameBottomScore = INITBOTTOMSCORE;
             idPlayer.Clear();
             ansMsg.Add("成功重置!");
             return ansMsg;
@@ -417,7 +465,7 @@ namespace qqbot2
                     return ansMsg;
                 }
             }
-
+            /*
             for (int i = 0; i < 3; i++)
             {
                 var nowIntegral = Udata.GetUserIntegral(idPlayer[i], eventArgs.SourceGroup.Id);
@@ -427,7 +475,7 @@ namespace qqbot2
                     ansMsg.Add(" 你已经没有积分可以开打了! 请下桌！");
                     return CurrentPlayers(ansMsg);
                 }
-            }
+            }*/
             for (int i = 0; i < 3; i++)
             {
                 var nowIntegral = Udata.GetUserIntegral(idPlayer[i], eventArgs.SourceGroup.Id);
@@ -522,6 +570,11 @@ namespace qqbot2
 
         public Sora.Entities.MessageBody GameAnsCount(Sora.Entities.MessageBody ansMsg, int ansCount)
         {
+            if (status != "counting")
+            {
+                ansMsg.Add("现在不能叫分！");
+                return ansMsg;
+            }
             if (nowUid != idPlayer[nowPlayer])
             {
                 ansMsg.Add("关你P事！现在轮到：");
@@ -554,6 +607,7 @@ namespace qqbot2
                 else
                 {
                     landlordPlayer = playerMax;
+                    nowPlayer = landlordPlayer;
                     return GameShowLandlord(ansMsg);
                 }
             }
@@ -754,6 +808,10 @@ namespace qqbot2
                 //飞机带翅膀
                 //分离一张两张和三张
                 List<List<int>> arrayCountCards = new();
+                for (var i = 0; i < 5; i++)
+                {
+                    arrayCountCards.Add(new List<int>());
+                }
                 foreach (var cardCount in countCards)
                 {
                     if (cardCount.Value <= 3)
