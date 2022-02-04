@@ -247,12 +247,14 @@ namespace qqbot2
                 Log.Info("Landlord", $"今日数字：{todayNumber}");
             }
 
+            if (todayRangeLeft == todayRangeRight)
+            {
+                ansMsg.Add($" 数字猜完了！今天的数字是 {todayRangeLeft}");
+                return ansMsg;
+            }
             if (number <= 0)
             {
-                if (todayRangeLeft == todayRangeRight)
-                    ansMsg.Add($" 数字猜完了！今天的数字是 {todayRangeLeft}");
-                else
-                    ansMsg.Add($" 当前猜数字范围为：({todayRangeLeft},{todayRangeRight})");
+                ansMsg.Add($" 当前猜数字范围为：({todayRangeLeft},{todayRangeRight})");
                 return ansMsg;
             }
 
